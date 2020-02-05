@@ -45,8 +45,8 @@ class FileCache(TileCacheBase):
         if self._level_location is None:
             self.level_location = None # disable level based clean-ups
 
-    def tile_location(self, tile, create_dir=False):
-        return self._tile_location(tile, self.cache_dir, self.file_ext, create_dir=create_dir)
+    def tile_location(self, tile, create_dir=False, time=None):
+        return self._tile_location(tile, self.cache_dir, self.file_ext, create_dir=create_dir, time=time)
 
     def level_location(self, level):
         """
@@ -74,8 +74,8 @@ class FileCache(TileCacheBase):
             ensure_directory(location)
         return location
 
-    def load_tile_metadata(self, tile):
-        location = self.tile_location(tile)
+    def load_tile_metadata(self, tile, time=None):
+        location = self.tile_location(tile, time=time)
         try:
             stats = os.lstat(location)
             tile.timestamp = stats.st_mtime
@@ -98,7 +98,7 @@ class FileCache(TileCacheBase):
         else:
             return True
 
-    def load_tile(self, tile, with_metadata=False):
+    def load_tile(self, tile, with_metadata=False, time=None):
         """
         Fills the `Tile.source` of the `tile` if it is cached.
         If it is not cached or if the ``.coord`` is ``None``, nothing happens.
@@ -106,11 +106,10 @@ class FileCache(TileCacheBase):
         if not tile.is_missing():
             return True
 
-        location = self.tile_location(tile)
-
+        location = self.tile_location(tile, time=time)
         if os.path.exists(location):
             if with_metadata:
-                self.load_tile_metadata(tile)
+                self.load_tile_metadata(tile, time=time)
             tile.source = ImageSource(location)
             return True
         return False
@@ -122,7 +121,7 @@ class FileCache(TileCacheBase):
         except OSError as ex:
             if ex.errno != errno.ENOENT: raise
 
-    def store_tile(self, tile):
+    def store_tile(self, tile, time):
         """
         Add the given `tile` to the file cache. Stores the `Tile.source` to
         `FileCache.tile_location`.
@@ -130,7 +129,7 @@ class FileCache(TileCacheBase):
         if tile.stored:
             return
 
-        tile_loc = self.tile_location(tile, create_dir=True)
+        tile_loc = self.tile_location(tile, create_dir=True, time=time)
 
         if self.link_single_color_images:
             color = is_single_color_image(tile.source.as_image())

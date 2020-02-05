@@ -1,7 +1,7 @@
 from __future__ import print_function
 import math
 
-from .util import resolve_ns
+from .util import resolve_ns, parse_datetime_range_str
 
 from xml.etree import ElementTree as etree
 from mapproxy.compat import string_type
@@ -125,6 +125,10 @@ class WMSCapabilities(object):
         layer['url'] = self.requests()['GetMap']
         layer['legend'] = self.layer_legend(elem)
 
+        time_range_dict = self.layer_datetime_range(elem)
+        if time_range_dict is not None:
+            layer['time_range'] = time_range_dict
+
         return layer
 
     def layer_legend(self, elem):
@@ -161,6 +165,7 @@ class WMSCapabilities(object):
             max_res = math.sqrt(float(max_res) ** 2 / 2.0)
 
         return min_res, max_res
+
 
 class WMS111Capabilities(WMSCapabilities):
     version = '1.1.1'
@@ -216,6 +221,13 @@ class WMS111Capabilities(WMSCapabilities):
 
         return bbox_srs
 
+    def layer_datetime_range(self, elem):
+        datetime_range_str = self.findtext(elem, 'Extent')
+        if datetime_range_str is None:
+            return None
+
+        return parse_datetime_range_str(datetime_range_str)
+
 
 class WMS130Capabilities(WMSCapabilities):
     version = '1.3.0'
@@ -268,6 +280,14 @@ class WMS130Capabilities(WMSCapabilities):
             bbox_srs = parent_layer['bbox_srs']
 
         return bbox_srs
+
+    def layer_datetime_range(self, elem):
+        datetime_range_str = self.findtext(elem, 'Dimension')
+        if datetime_range_str is None:
+            return None
+
+        return parse_datetime_range_str(datetime_range_str)
+
 
 def yaml_sources(cap):
     sources = {}

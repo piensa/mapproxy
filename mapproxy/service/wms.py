@@ -81,10 +81,8 @@ class WMSServer(Server):
 
     def map(self, map_request):
         self.check_map_request(map_request)
-
         params = map_request.params
-        query = MapQuery(params.bbox, params.size, SRS(params.srs), params.format)
-
+        query = MapQuery(params.bbox, params.size, SRS(params.srs), params.format, time=params.time)
         if map_request.params.get('tiled', 'false').lower() == 'true':
             query.tiled_only = True
         orig_query = query
@@ -101,7 +99,7 @@ class WMSServer(Server):
                     img = BlankImageSource(size=params.size, image_opts=img_opts, cacheable=True)
                     return Response(img.as_buffer(), content_type=img_opts.format.mime_type)
                 sub_size, offset, sub_bbox = bbox_position_in_image(params.bbox, params.size, limited_extent.bbox)
-                query = MapQuery(sub_bbox, sub_size, SRS(params.srs), params.format)
+                query = MapQuery(sub_bbox, sub_size, SRS(params.srs), params.format, time=params.time)
 
         actual_layers = odict()
         for layer_name in map_request.params.layers:

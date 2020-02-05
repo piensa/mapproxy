@@ -115,7 +115,7 @@ class MapQuery(object):
     Internal query for a map with a specific extent, size, srs, etc.
     """
     def __init__(self, bbox, size, srs, format='image/png', transparent=False,
-                 tiled_only=False, dimensions=None):
+                 tiled_only=False, dimensions=None, time=None):
         self.bbox = bbox
         self.size = size
         self.srs = srs
@@ -123,6 +123,7 @@ class MapQuery(object):
         self.transparent = transparent
         self.tiled_only = tiled_only
         self.dimensions = dimensions or {}
+        self.time = time
 
     def dimensions_for_params(self, params):
         """
@@ -136,7 +137,7 @@ class MapQuery(object):
         return dict((k, v) for k, v in iteritems(self.dimensions) if k.lower() in params)
 
     def __repr__(self):
-        return "MapQuery(bbox=%(bbox)s, size=%(size)s, srs=%(srs)r, format=%(format)s)" % self.__dict__
+        return "MapQuery(bbox=%(bbox)s, size=%(size)s, srs=%(srs)r, format=%(format)s), time=%(time)s)" % self.__dict__
 
 class InfoQuery(object):
     def __init__(self, bbox, size, srs, pos, info_format, format=None,
@@ -402,7 +403,7 @@ class CacheMapLayer(MapLayer):
             size, offset, bbox = bbox_position_in_image(query.bbox, query.size, self.extent.bbox_for(query.srs))
             if size[0] == 0 or size[1] == 0:
                 raise BlankImage()
-            src_query = MapQuery(bbox, size, query.srs, query.format)
+            src_query = MapQuery(bbox, size, query.srs, query.format, time=query.time)
             resp = self._image(src_query)
             result = SubImageSource(resp, size=query.size, offset=offset, image_opts=self.image_opts,
                 cacheable=resp.cacheable)
@@ -440,7 +441,7 @@ class CacheMapLayer(MapLayer):
                 raise MapBBOXError("query does not align to tile boundaries")
 
         with self.tile_manager.session():
-            tile_collection = self.tile_manager.load_tile_coords(affected_tile_coords, with_metadata=query.tiled_only)
+            tile_collection = self.tile_manager.load_tile_coords(affected_tile_coords, with_metadata=query.tiled_only, time=query.time)
 
         if tile_collection.empty:
             raise BlankImage()

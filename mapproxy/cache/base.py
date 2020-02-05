@@ -45,20 +45,20 @@ class TileCacheBase(object):
     def load_tile(self, tile, with_metadata=False):
         raise NotImplementedError()
 
-    def load_tiles(self, tiles, with_metadata=False):
+    def load_tiles(self, tiles, with_metadata=False, time=None):
         all_succeed = True
         for tile in tiles:
-            if not self.load_tile(tile, with_metadata=with_metadata):
+            if not self.load_tile(tile, with_metadata=with_metadata, time=time):
                 all_succeed = False
         return all_succeed
 
     def store_tile(self, tile):
         raise NotImplementedError()
 
-    def store_tiles(self, tiles):
+    def store_tiles(self, tiles, time):
         all_succeed = True
         for tile in tiles:
-            if not self.store_tile(tile):
+            if not self.store_tile(tile, time):
                 all_succeed = False
         return all_succeed
 

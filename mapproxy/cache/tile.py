@@ -117,7 +117,7 @@ class TileManager(object):
         )[0]
 
 
-    def load_tile_coords(self, tile_coords, dimensions=None, with_metadata=False):
+    def load_tile_coords(self, tile_coords, dimensions=None, with_metadata=False, time=None):
         tiles = TileCollection(tile_coords)
         rescale_till_zoom = 0
         if self.rescale_tiles:
@@ -138,7 +138,7 @@ class TileManager(object):
 
         tiles = self._load_tile_coords(
             tiles, dimensions=dimensions, with_metadata=with_metadata,
-            rescale_till_zoom=rescale_till_zoom, rescaled_tiles={},
+            rescale_till_zoom=rescale_till_zoom, rescaled_tiles={}, time=time
         )
 
         for t in tiles.tiles:
@@ -149,7 +149,7 @@ class TileManager(object):
         return tiles
 
     def _load_tile_coords(self, tiles, dimensions=None, with_metadata=False,
-                          rescale_till_zoom=None, rescaled_tiles=None,
+                          rescale_till_zoom=None, rescaled_tiles=None, time=None
         ):
         uncached_tiles = []
 
@@ -159,7 +159,7 @@ class TileManager(object):
                     t.source = rescaled_tiles[t.coord].source
 
         # load all in batch
-        self.cache.load_tiles(tiles, with_metadata)
+        self.cache.load_tiles(tiles, with_metadata, time)
 
         for tile in tiles:
             if tile.coord is not None and not self.is_cached(tile, dimensions=dimensions):
@@ -168,7 +168,7 @@ class TileManager(object):
 
         if uncached_tiles:
             creator = self.creator(dimensions=dimensions)
-            created_tiles = creator.create_tiles(uncached_tiles)
+            created_tiles = creator.create_tiles(uncached_tiles, time=time)
             if not created_tiles and self.rescale_tiles:
                 created_tiles = [self._scaled_tile(t, rescale_till_zoom, rescaled_tiles) for t in uncached_tiles]
 
@@ -318,15 +318,15 @@ class TileCreator(object):
         """
         return self.tile_mgr.is_cached(tile)
 
-    def create_tiles(self, tiles):
+    def create_tiles(self, tiles, time=None):
         if not self.sources:
             return []
         if not self.meta_grid:
-            created_tiles = self._create_single_tiles(tiles)
+            created_tiles = self._create_single_tiles(tiles, time)
         elif self.tile_mgr.minimize_meta_requests and len(tiles) > 1:
             # use minimal requests only for mulitple tile requests (ie not for TMS)
             meta_tile = self.meta_grid.minimal_meta_tile([t.coord for t in tiles])
-            created_tiles = self._create_meta_tile(meta_tile)
+            created_tiles = self._create_meta_tile(meta_tile, time)
         else:
             meta_tiles = []
             meta_bboxes = set()
@@ -336,30 +336,30 @@ class TileCreator(object):
                     meta_tiles.append(meta_tile)
                     meta_bboxes.add(meta_tile.bbox)
 
-            created_tiles = self._create_meta_tiles(meta_tiles)
+            created_tiles = self._create_meta_tiles(meta_tiles, time)
 
         return created_tiles
 
-    def _create_single_tiles(self, tiles):
+    def _create_single_tiles(self, tiles, time):
         if self.tile_mgr.concurrent_tile_creators > 1 and len(tiles) > 1:
             return self._create_threaded(self._create_single_tile, tiles)
 
         created_tiles = []
         for tile in tiles:
-            created_tiles.extend(self._create_single_tile(tile))
+            created_tiles.extend(self._create_single_tile(tile, time))
         return created_tiles
 
-    def _create_threaded(self, create_func, tiles):
+    def _create_threaded(self, create_func, tiles, time):
         result = []
         async_pool = async_.Pool(self.tile_mgr.concurrent_tile_creators)
         for new_tiles in async_pool.imap(create_func, tiles):
             result.extend(new_tiles)
         return result
 
-    def _create_single_tile(self, tile):
+    def _create_single_tile(self, tile, time):
         tile_bbox = self.grid.tile_bbox(tile.coord)
         query = MapQuery(tile_bbox, self.grid.tile_size, self.grid.srs,
-                         self.tile_mgr.request_format, dimensions=self.dimensions)
+                         self.tile_mgr.request_format, dimensions=self.dimensions, time=time)
         with self.tile_mgr.lock(tile):
             if not self.is_cached(tile):
                 source = self._query_sources(query)
@@ -411,7 +411,7 @@ class TileCreator(object):
         return merge_images(layers, size=query.size, bbox=query.bbox, bbox_srs=query.srs,
                             image_opts=self.tile_mgr.image_opts, merger=self.image_merger)
 
-    def _create_meta_tiles(self, meta_tiles):
+    def _create_meta_tiles(self, meta_tiles, time):
         if self.bulk_meta_tiles:
             created_tiles = []
             for meta_tile in meta_tiles:
@@ -423,17 +423,17 @@ class TileCreator(object):
 
         created_tiles = []
         for meta_tile in meta_tiles:
-            created_tiles.extend(self._create_meta_tile(meta_tile))
+            created_tiles.extend(self._create_meta_tile(meta_tile, time))
         return created_tiles
 
-    def _create_meta_tile(self, meta_tile):
+    def _create_meta_tile(self, meta_tile, time):
         """
         _create_meta_tile queries a single meta tile and splits it into
         tiles.
         """
         tile_size = self.grid.tile_size
         query = MapQuery(meta_tile.bbox, meta_tile.size, self.grid.srs, self.tile_mgr.request_format,
-            dimensions=self.dimensions)
+            dimensions=self.dimensions, time=time)
         main_tile = Tile(meta_tile.main_tile_coord)
         with self.tile_mgr.lock(main_tile):
             if not all(self.is_cached(t) for t in meta_tile.tiles if t is not None):
@@ -443,7 +443,7 @@ class TileCreator(object):
                                                   tile_size, self.tile_mgr.image_opts)
                 splitted_tiles = [self.tile_mgr.apply_tile_filter(t) for t in splitted_tiles]
                 if meta_tile_image.cacheable:
-                    self.cache.store_tiles(splitted_tiles)
+                    self.cache.store_tiles(splitted_tiles, time)
                 return splitted_tiles
             # else
         tiles = [Tile(coord) for coord in meta_tile.tiles]

@@ -16,7 +16,7 @@
 import os
 from mapproxy.compat import string_type
 from mapproxy.util.fs import ensure_directory
-
+from dateutil import parser
 
 def location_funcs(layout):
     if layout == 'tc':
@@ -62,7 +62,7 @@ def level_part(level):
         return "%02d" % level
 
 
-def tile_location_tc(tile, cache_dir, file_ext, create_dir=False):
+def tile_location_tc(tile, cache_dir, file_ext, create_dir=False, time=None):
     """
     Return the location of the `tile`. Caches the result as ``location``
     property of the `tile`.
@@ -75,6 +75,10 @@ def tile_location_tc(tile, cache_dir, file_ext, create_dir=False):
     >>> tile_location_tc(Tile((3, 4, 2)), '/tmp/cache', 'png').replace('\\\\', '/')
     '/tmp/cache/02/000/000/003/000/000/004.png'
     """
+    if time is not None:
+        time_int = parser.parse(time).toordinal()
+        cache_dir = os.path.join(cache_dir, str(time_int))
+
     if tile.location is None:
         x, y, z = tile.coord
         parts = (cache_dir,

@@ -20,3 +20,8 @@ def resolve_ns(xpath, namespaces, default=None):
             return '%s{%s}%s' % (match.group(1), abs_ns, match.group(3))
 
     return xpath_elem.sub(repl, xpath)
+
+
+def parse_datetime_range_str(datetime_range_str):
+    init, end = datetime_range_str.split('/')[:2]
+    return {'from': init, 'to': end}

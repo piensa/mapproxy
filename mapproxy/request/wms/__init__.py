@@ -48,6 +48,14 @@ class WMSMapRequestParams(RequestParams):
     del _get_layers
     del _set_layers
 
+    def _get_time(self):
+        return self.params.get('time', None)
+    def _set_time(self, time):
+        self.params['time'] = time
+    time = property(_get_time, _set_time)
+    del _get_time
+    del _set_time
+
     def _get_bbox(self):
         """
         ``bbox`` as a tuple (minx, miny, maxx, maxy).
