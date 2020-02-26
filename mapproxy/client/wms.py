@@ -41,6 +41,7 @@ class WMSClient(object):
         self.fwd_req_params = fwd_req_params or set()
 
     def retrieve(self, query, format):
+        log.debug(query)
         if self.http_method == 'POST':
             request_method = 'POST'
         elif self.http_method == 'GET':
@@ -58,6 +59,7 @@ class WMSClient(object):
         else:
             url = self._query_url(query, format)
             data = None
+
 
         if self.lock:
             with self.lock():
@@ -103,7 +105,11 @@ class WMSClient(object):
         req.params.srs = query.srs.srs_code
         req.params.format = format
         # also forward dimension request params if available in the query
-        req.params.update(query.dimensions_for_params(self.fwd_req_params))
+        req.params.update(query.dimensions)
+        # and nullify the forward_req_params option
+        req.params.forward_req_params = set()
+        log.debug(req.params)
+
         return req
 
     def combined_client(self, other, query):

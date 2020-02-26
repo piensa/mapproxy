@@ -511,8 +511,10 @@ class Capabilities(object):
 
     def layer_llbbox(self, layer):
         if 'EPSG:4326' in self.srs_extents:
-            llbbox = self.srs_extents['EPSG:4326'].intersection(layer.extent).llbbox
-            return limit_llbbox(llbbox)
+            intersection = self.srs_extents['EPSG:4326'].intersection(layer.extent)
+            if intersection is not None:
+                llbbox = intersection.llbbox
+                return limit_llbbox(llbbox)
         return limit_llbbox(layer.extent.llbbox)
 
     def render(self, _map_request):

@@ -1719,7 +1719,10 @@ class LayerConfiguration(ConfigurationBase):
                         lg_sources.append(lg_source)
 
         res_range = resolution_range(self.conf)
-        dimensions = self.dimensions()
+
+        dimensions = None
+        if 'dimensions' in self.conf.keys():
+            dimensions = self.dimensions()
 
         layer = WMSLayer(self.conf.get('name'), self.conf.get('title'),
                          sources, fi_sources, lg_sources, res_range=res_range, md=self.conf.get('md'),
@@ -1732,8 +1735,20 @@ class LayerConfiguration(ConfigurationBase):
         dimensions = {}
 
         for dimension, conf in iteritems(self.conf.get('dimensions', {})):
-            values = [str(val) for val in  conf.get('values', ['default'])]
+            # Check if values is a string instead of a list
+            # and process it as a range. Only Hours are accepted as
+            # a valid time period.
+            # Example:
+            # 2020-03-25T12:00:00Z/2020-03-27T00:00:00Z/PT12H
+            from mapproxy.util.ext.wmsparse.util import parse_datetime_range
+
+            raw_values = conf.get('values')
+            if type(raw_values) == str:
+                values = parse_datetime_range(raw_values)
+            else:
+                values = [str(val) for val in  conf.get('values')]
             default = conf.get('default', values[-1])
+
             dimensions[dimension.lower()] = Dimension(dimension, values, default=default)
         return dimensions
 

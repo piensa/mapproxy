@@ -247,12 +247,7 @@ class WMSMapRequest(WMSRequest):
             raise RequestError('unsupported srs: ' + self.params['srs'],
                                code='InvalidSRS', request=self)
     def validate_styles(self):
-        if 'styles' in self.params:
-            styles = self.params['styles']
-            if not set(styles.split(',')).issubset(set(['default', '', 'inspire_common:DEFAULT'])):
-                raise RequestError('unsupported styles: ' + self.params['styles'],
-                                   code='StyleNotDefined', request=self)
-
+        return
 
     @property
     def exception_handler(self):
@@ -371,7 +366,7 @@ class WMS130MapRequest(WMSMapRequest):
     request_params = WMS130MapRequestParams
     xml_exception_handler = exception.WMS130ExceptionHandler
     fixed_params = {'request': 'GetMap', 'version': '1.3.0', 'service': 'WMS'}
-    expected_param = ['version', 'request', 'layers', 'styles', 'crs', 'bbox',
+    expected_param = ['version', 'request', 'layers', 'bbox',
                       'width', 'height', 'format']
     def adapt_to_111(self):
         del self.params['wmtver']
