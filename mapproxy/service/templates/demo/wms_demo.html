@@ -26,7 +26,7 @@ jscript_functions=None
         var layer = new OpenLayers.Layer.WMS( "WMS {{layer.name}}",
             "../service?",
             {layers: "{{layer.name}}", format: "{{format}}", srs:"{{srs}}",
-             {{if layer.dimensions}}{{", ".join(('"%s": "%s"' % (str(k), v[0])) for k, v in layer.dimensions.items())}},{{endif}}
+             {{if layer.dimensions}}{{for d in layer.dimensions.keys()}}"{{d}}": {{layer.dimensions[d].default}},{{endfor}}{{endif}}
              exceptions: "application/vnd.ogc.se_inimage"{{if format == 'image/png'}}, transparent: true{{endif}}},
             {singleTile: true, ratio: 1, isBaseLayer: true} );
 
@@ -75,10 +75,13 @@ jscript_functions=None
                         </td>
 		  {{for dim in layer.dimensions}}
                   <td>
-		    <select name="{{str(dim)}}" size="1" onchange="setDimension(map.layers[0], &quot;{{str(dim)}}&quot;, this.value);">
-		      {{for value in layer.dimensions[dim]}}
-                        <option value="{{value}}">{{value}}</option>
-		      {{endfor}}
+                   <select name="{{str(dim)}}" size="1" onchange="setDimension(map.layers[0], &quot;{{str(dim)}}&quot;, this.value);">
+                    {{for value in layer.dimensions[dim]}}
+                      {{if value == layer.dimensions[dim].default}}
+                      <option value="{{value}}" selected="selected">{{value}}</option>
+                      {{else}}
+                      <option value="{{value}}">{{value}}</option>
+                      {{endif}}
 		    </select>
 		  </td>
 		  {{endfor}}
