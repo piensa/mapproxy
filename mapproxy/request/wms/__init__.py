@@ -246,8 +246,13 @@ class WMSMapRequest(WMSRequest):
         if self.params['srs'].upper() not in srs:
             raise RequestError('unsupported srs: ' + self.params['srs'],
                                code='InvalidSRS', request=self)
+
     def validate_styles(self):
-        return
+        if 'styles' in self.params:
+            styles = self.params['styles']
+            if not set(styles.split(',')).issubset(set(['default', '', 'inspire_common:DEFAULT'])):
+                raise RequestError('unsupported styles: ' + self.params['styles'],
+                                   code='StyleNotDefined', request=self)
 
     @property
     def exception_handler(self):
