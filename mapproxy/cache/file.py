@@ -47,6 +47,12 @@ class FileCache(TileCacheBase):
             self.level_location = None # disable level based clean-ups
 
     def tile_location(self, tile, create_dir=False, dimensions=None):
+        if dimensions is not None:
+            items = list(dimensions.keys())
+            items.sort()
+            dimensions_str = ['{key}-{value}'.format(key=i, value=dimensions[i].replace('/', '_')) for i in items]
+            cache_dir = os.path.join(cache_dir, '_'.join(dimensions_str))
+
         return self._tile_location(tile, self.cache_dir, self.file_ext, create_dir=create_dir, dimensionlist=self.dimensionlist, dimensions=dimensions)
 
     def level_location(self, level, dimensions=None):
