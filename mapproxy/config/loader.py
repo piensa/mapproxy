@@ -1064,14 +1064,11 @@ class CacheConfiguration(ConfigurationBase):
             log.warn('link_single_color_images not supported on windows')
             link_single_color_images = False
 
-        dimensionlist = self.context.globals.get_value('dimensions', self.conf,
-                                                    global_key='cache.dimensions')
         return FileCache(
             cache_dir,
             file_ext=file_ext,
             directory_layout=directory_layout,
             link_single_color_images=link_single_color_images,
-            dimensionlist=dimensionlist,
         )
 
     def _mbtiles_cache(self, grid_conf, file_ext):
@@ -1562,8 +1559,6 @@ class CacheConfiguration(ConfigurationBase):
                         lock_timeout=self.context.globals.get_value('http.client_timeout', {}),
                         lock_cache_id=cache.lock_cache_id,
                 )
-            dimensionlist = self.context.globals.get_value('dimensions', self.conf,
-                                                           global_key='cache.dimensions')
 
             mgr = TileManager(tile_grid, cache, sources, image_opts.format.ext,
                 locker=locker,
@@ -1577,7 +1572,6 @@ class CacheConfiguration(ConfigurationBase):
                 bulk_meta_tiles=bulk_meta_tiles,
                 cache_rescaled_tiles=cache_rescaled_tiles,
                 rescale_tiles=rescale_tiles,
-                dimensions=dimensionlist,
             )
             extent = merge_layer_extents(sources)
             if extent.is_default:
