@@ -26,7 +26,7 @@ jscript_functions=None
         var layer = new OpenLayers.Layer.WMS( "WMS {{layer.name}}",
             "../service?",
             {layers: "{{layer.name}}", format: "{{format}}", srs:"{{srs}}",
-             {{if layer.dimensions}}{{for d in layer.dimensions.keys()}}"{{d}}": {{layer.dimensions[d].default}},{{endfor}}{{endif}}
+             {{if layer.dimensions}}{{for d in layer.dimensions.keys()}}"{{d}}": "{{layer.dimensions[d].default}}",{{endfor}}{{endif}}
              exceptions: "application/vnd.ogc.se_inimage"{{if format == 'image/png'}}, transparent: true{{endif}}},
             {singleTile: true, ratio: 1, isBaseLayer: true} );
 
