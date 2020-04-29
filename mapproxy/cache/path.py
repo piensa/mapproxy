@@ -54,7 +54,6 @@ def level_location(level, cache_dir, dimensions=None):
     >>> os.path.abspath(level_location(2, '/tmp/cache')) == os.path.abspath('/tmp/cache/02')
     True
     """
-    dim_path = ''
     dim_path = dimensions_part(dimensions)
 
     if isinstance(level, string_type):
