@@ -436,8 +436,6 @@ class TileCreator(object):
         tiles.
         """
         tile_size = self.grid.tile_size
-        log.debug("Dimensions: ")
-        log.debug(self.dimensions)
         query = MapQuery(meta_tile.bbox, meta_tile.size, self.grid.srs, self.tile_mgr.request_format,
             dimensions=self.dimensions)
         log.debug(query)
