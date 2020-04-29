@@ -371,7 +371,7 @@ class WMS130MapRequest(WMSMapRequest):
     request_params = WMS130MapRequestParams
     xml_exception_handler = exception.WMS130ExceptionHandler
     fixed_params = {'request': 'GetMap', 'version': '1.3.0', 'service': 'WMS'}
-    expected_param = ['version', 'request', 'layers', 'bbox',
+    expected_param = ['version', 'request', 'layers', 'styles', 'crs', 'bbox',
                       'width', 'height', 'format']
     def adapt_to_111(self):
         del self.params['wmtver']
