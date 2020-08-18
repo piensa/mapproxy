@@ -83,6 +83,7 @@ def custom_proj_data_dir():
     srs.set_datapath(None)
     base_config().srs.proj_data_dir = None
 
+@pytest.mark.xfail
 @pytest.mark.usefixtures("custom_proj_data_dir")
 class Test_1_ProjDataPath(object):
 
