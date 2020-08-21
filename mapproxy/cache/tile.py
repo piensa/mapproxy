@@ -149,7 +149,7 @@ class TileManager(object):
         return tiles
 
     def _load_tile_coords(self, tiles, dimensions=None, with_metadata=False,
-                          rescale_till_zoom=None, rescaled_tiles=None,
+                          rescale_till_zoom=None, rescaled_tiles=None
         ):
         uncached_tiles = []
 
@@ -159,7 +159,7 @@ class TileManager(object):
                     t.source = rescaled_tiles[t.coord].source
 
         # load all in batch
-        self.cache.load_tiles(tiles, with_metadata)
+        self.cache.load_tiles(tiles, with_metadata,dimensions=dimensions)
 
         for tile in tiles:
             if tile.coord is not None and not self.is_cached(tile, dimensions=dimensions):

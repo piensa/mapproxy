@@ -129,7 +129,7 @@ class RiakCache(TileCacheBase):
         # is_cached loads metadata
         self.load_tile(tile, True)
 
-    def load_tile(self, tile, with_metadata=False):
+    def load_tile(self, tile, with_metadata=False, dimensions=None):
         if tile.timestamp is None:
             tile.timestamp = 0
         if tile.source or tile.coord is None:

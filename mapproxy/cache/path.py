@@ -34,7 +34,7 @@ def location_funcs(layout):
     else:
         raise ValueError('unknown directory_layout "%s"' % layout)
 
-def level_location(level, cache_dir):
+def level_location(level, cache_dir,dimensionlist=None, dimensions=None):
     """
     Return the path where all tiles for `level` will be stored.
 
@@ -62,7 +62,7 @@ def level_part(level):
         return "%02d" % level
 
 
-def tile_location_tc(tile, cache_dir, file_ext, create_dir=False):
+def tile_location_tc(tile, cache_dir, file_ext, create_dir=False,dimensionlist=None, dimensions=None):
     """
     Return the location of the `tile`. Caches the result as ``location``
     property of the `tile`.
@@ -90,7 +90,7 @@ def tile_location_tc(tile, cache_dir, file_ext, create_dir=False):
         ensure_directory(tile.location)
     return tile.location
 
-def tile_location_mp(tile, cache_dir, file_ext, create_dir=False):
+def tile_location_mp(tile, cache_dir, file_ext, create_dir=False,dimensionlist=None, dimensions=None):
     """
     Return the location of the `tile`. Caches the result as ``location``
     property of the `tile`.
@@ -118,7 +118,7 @@ def tile_location_mp(tile, cache_dir, file_ext, create_dir=False):
         ensure_directory(tile.location)
     return tile.location
 
-def tile_location_tms(tile, cache_dir, file_ext, create_dir=False):
+def tile_location_tms(tile, cache_dir, file_ext, create_dir=False,dimensionlist=None, dimensions=None):
     """
     Return the location of the `tile`. Caches the result as ``location``
     property of the `tile`.
@@ -141,7 +141,7 @@ def tile_location_tms(tile, cache_dir, file_ext, create_dir=False):
         ensure_directory(tile.location)
     return tile.location
 
-def tile_location_reverse_tms(tile, cache_dir, file_ext, create_dir=False):
+def tile_location_reverse_tms(tile, cache_dir, file_ext, create_dir=False, dimensionlist=None, dimensions=None):
     """
     Return the location of the `tile`. Caches the result as ``location``
     property of the `tile`.
@@ -163,10 +163,10 @@ def tile_location_reverse_tms(tile, cache_dir, file_ext, create_dir=False):
         ensure_directory(tile.location)
     return tile.location
 
-def level_location_tms(level, cache_dir):
+def level_location_tms(level, cache_dir,dimensionlist=None, dimensions=None):
     return level_location(str(level), cache_dir=cache_dir)
 
-def tile_location_quadkey(tile, cache_dir, file_ext, create_dir=False):
+def tile_location_quadkey(tile, cache_dir, file_ext, create_dir=False,dimensionlist=None, dimensions=None):
     """
     Return the location of the `tile`. Caches the result as ``location``
     property of the `tile`.
@@ -197,11 +197,11 @@ def tile_location_quadkey(tile, cache_dir, file_ext, create_dir=False):
         ensure_directory(tile.location)
     return tile.location
 
-def no_level_location(level, cache_dir):
+def no_level_location(level, cache_dir,dimensionlist=None, dimensions=None):
     # dummy for quadkey cache which stores all tiles in one directory
     raise NotImplementedError('cache does not have any level location')
 
-def tile_location_arcgiscache(tile, cache_dir, file_ext, create_dir=False):
+def tile_location_arcgiscache(tile, cache_dir, file_ext, create_dir=False,dimensionlist=None, dimensions=None):
     """
     Return the location of the `tile`. Caches the result as ``location``
     property of the `tile`.
@@ -222,5 +222,5 @@ def tile_location_arcgiscache(tile, cache_dir, file_ext, create_dir=False):
         ensure_directory(tile.location)
     return tile.location
 
-def level_location_arcgiscache(z, cache_dir):
-    return level_location('L%02d' % z, cache_dir=cache_dir)
+def level_location_arcgiscache(z, cache_dir,dimensionlist=None, dimensions=None):
+    return level_location('L%02d' % z, cache_dir=cache_dir,dimensions=dimensions)

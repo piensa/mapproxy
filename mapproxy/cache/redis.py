@@ -69,7 +69,7 @@ class RedisCache(TileCacheBase):
             self.r.pexpire(key, int(self.ttl * 1000))
         return r
 
-    def load_tile(self, tile, with_metadata=False):
+    def load_tile(self, tile, with_metadata=False, dimensions=None):
         if tile.source or tile.coord is None:
             return True
         key = self._key(tile)

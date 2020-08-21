@@ -115,11 +115,11 @@ class S3Cache(TileCacheBase):
 
         return True
 
-    def load_tiles(self, tiles, with_metadata=True):
+    def load_tiles(self, tiles, with_metadata=True,dimensions=None):
         p = async_.Pool(min(4, len(tiles)))
         return all(p.map(self.load_tile, tiles))
 
-    def load_tile(self, tile, with_metadata=True):
+    def load_tile(self, tile, with_metadata=True,dimensions=None):
         if not tile.is_missing():
             return True
 
