@@ -46,6 +46,8 @@ from mapproxy.image.tile import TileSplitter, TiledImage
 from mapproxy.layer import MapQuery, BlankImage
 from mapproxy.util import async_
 from mapproxy.util.py import reraise
+import logging
+log = logging.getLogger('mapproxy.cache.tile')
 
 
 class TileManager(object):
@@ -432,8 +434,12 @@ class TileCreator(object):
         tiles.
         """
         tile_size = self.grid.tile_size
+        log.debug("Dimensions: ")
+        log.debug(self.dimensions)
+
         query = MapQuery(meta_tile.bbox, meta_tile.size, self.grid.srs, self.tile_mgr.request_format,
             dimensions=self.dimensions)
+        log.debug(query)
         main_tile = Tile(meta_tile.main_tile_coord)
         with self.tile_mgr.lock(main_tile):
             if not all(self.is_cached(t) for t in meta_tile.tiles if t is not None):

@@ -511,8 +511,10 @@ class Capabilities(object):
 
     def layer_llbbox(self, layer):
         if 'EPSG:4326' in self.srs_extents:
-            llbbox = self.srs_extents['EPSG:4326'].intersection(layer.extent).llbbox
-            return limit_llbbox(llbbox)
+            intersection = self.srs_extents['EPSG:4326'].intersection(layer.extent)
+            if intersection is not None:
+                llbbox = intersection.llbbox
+                return limit_llbbox(llbbox)
         return limit_llbbox(layer.extent.llbbox)
 
     def render(self, _map_request):
@@ -695,7 +697,7 @@ class WMSLayer(WMSLayerBase):
     is_active = True
     layers = []
     def __init__(self, name, title, map_layers, info_layers=[], legend_layers=[],
-                 res_range=None, md=None):
+                 res_range=None, md=None,dimensions=None):
         self.name = name
         self.title = title
         self.md = md or {}
@@ -703,6 +705,8 @@ class WMSLayer(WMSLayerBase):
         self.info_layers = info_layers
         self.legend_layers = legend_layers
         self.extent = merge_layer_extents(map_layers)
+        self.dimensions = dimensions
+
         if res_range is None:
             res_range = merge_layer_res_ranges(map_layers)
         self.res_range = res_range

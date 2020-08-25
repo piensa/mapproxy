@@ -1712,18 +1712,26 @@ class LayerConfiguration(ConfigurationBase):
                         lg_sources.append(lg_source)
 
         res_range = resolution_range(self.conf)
+        dimensions = None
+        if 'dimensions' in self.conf.keys():
+            dimensions = self.dimensions()
 
         layer = WMSLayer(self.conf.get('name'), self.conf.get('title'),
-                         sources, fi_sources, lg_sources, res_range=res_range, md=self.conf.get('md'))
+                         sources, fi_sources, lg_sources, res_range=res_range, md=self.conf.get('md'),dimensions=dimensions)
         return layer
 
     @memoize
     def dimensions(self):
         from mapproxy.layer import Dimension
+        from mapproxy.util.ext.wmsparse.util import parse_datetime_range
         dimensions = {}
-
         for dimension, conf in iteritems(self.conf.get('dimensions', {})):
-            values = [str(val) for val in  conf.get('values', ['default'])]
+            raw_values = conf.get('values')
+            if type(raw_values) == str:
+                values = parse_datetime_range(raw_values)
+            else:
+                values = [str(val) for val in  conf.get('values', ['default'])]
+            
             default = conf.get('default', values[-1])
             dimensions[dimension.lower()] = Dimension(dimension, values, default=default)
         return dimensions

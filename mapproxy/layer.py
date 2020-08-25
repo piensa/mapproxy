@@ -136,7 +136,12 @@ class MapQuery(object):
         return dict((k, v) for k, v in iteritems(self.dimensions) if k.lower() in params)
 
     def __repr__(self):
-        return "MapQuery(bbox=%(bbox)s, size=%(size)s, srs=%(srs)r, format=%(format)s)" % self.__dict__
+        info = self.__dict__
+        log.debug(self.dimensions)
+        serialized_dimensions = ", ".join(["'%s': '%s'" % (key, value) for (key, value) in self.dimensions.items()])
+        info["serialized_dimensions"] = serialized_dimensions
+        return "MapQuery(bbox=%(bbox)s, size=%(size)s, srs=%(srs)r, format=%(format)s, dimensions={%(serialized_dimensions)s)}" % info
+
 
 class InfoQuery(object):
     def __init__(self, bbox, size, srs, pos, info_format, format=None,
