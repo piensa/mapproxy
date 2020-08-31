@@ -1740,6 +1740,7 @@ class LayerConfiguration(ConfigurationBase):
     def tile_layers(self, grid_name_as_path=False):
         from mapproxy.service.tile import TileLayer
         from mapproxy.cache.dummy import DummyCache
+        from mapproxy.cache.file import FileCache
 
         sources = []
         fi_only_sources = []
@@ -1782,7 +1783,7 @@ class LayerConfiguration(ConfigurationBase):
                     fi_sources.append(fi_source)
 
             for grid, extent, cache_source in self.context.caches[cache_name].caches():
-                if dimensions and not isinstance(cache_source.cache, DummyCache):
+                if dimensions and not isinstance(cache_source.cache, FileCache):
                     # caching of dimension layers is not supported yet
                     raise ConfigurationError(
                         "caching of dimension layer (%s) is not supported yet."
@@ -2077,13 +2078,11 @@ def load_configuration(mapproxy_conf, seed=False, ignore_warnings=True, renderd=
         conf_dict = load_configuration_file([os.path.basename(mapproxy_conf)], conf_base_dir)
     except YAMLError as ex:
         raise ConfigurationError(ex)
-
     errors, informal_only = validate_options(conf_dict)
     for error in errors:
         log.warning(error)
     if not informal_only or (errors and not ignore_warnings):
         raise ConfigurationError('invalid configuration')
-
     errors = validate_references(conf_dict)
     for error in errors:
         log.warning(error)
@@ -2101,9 +2100,7 @@ def load_configuration_file(files, working_dir):
         conf_file = os.path.normpath(os.path.join(working_dir, conf_file))
         log.info('reading: %s' % conf_file)
         current_dict = load_yaml_file(conf_file)
-
         conf_dict['__config_files__'][os.path.abspath(conf_file)] = os.path.getmtime(conf_file)
-
         if 'base' in current_dict:
             current_working_dir = os.path.dirname(conf_file)
             base_files = current_dict.pop('base')
@@ -2111,9 +2108,8 @@ def load_configuration_file(files, working_dir):
                 base_files = [base_files]
             imported_dict = load_configuration_file(base_files, current_working_dir)
             current_dict = merge_dict(current_dict, imported_dict)
-
         conf_dict = merge_dict(conf_dict, current_dict)
-
+    log.info(conf_dict)
     return conf_dict
 
 def merge_dict(conf, base):
