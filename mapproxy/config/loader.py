@@ -38,6 +38,9 @@ from mapproxy.util.fs import find_exec
 from mapproxy.compat.modules import urlparse
 from mapproxy.compat import string_type, iteritems
 
+#Keeping flag to store cache.
+disable_storage = False
+
 class ConfigurationError(Exception):
     pass
 
@@ -1576,6 +1579,9 @@ class CacheConfiguration(ConfigurationBase):
             if extent.is_default:
                 extent = map_extent_from_grid(tile_grid)
             caches.append((tile_grid, extent, mgr))
+
+        global disable_storage
+        disable_storage=self.conf.get('disable_storage', False)
         return caches
 
     @memoize
@@ -1741,7 +1747,6 @@ class LayerConfiguration(ConfigurationBase):
         from mapproxy.service.tile import TileLayer
         from mapproxy.cache.dummy import DummyCache
         from mapproxy.cache.file import FileCache
-
         sources = []
         fi_only_sources = []
         if 'tile_sources' in self.conf:
@@ -1783,7 +1788,11 @@ class LayerConfiguration(ConfigurationBase):
                     fi_sources.append(fi_source)
 
             for grid, extent, cache_source in self.context.caches[cache_name].caches():
-                if dimensions and not isinstance(cache_source.cache, FileCache):
+                if disable_storage:
+                    CACHE = DummyCache
+                else:
+                    CACHE = FileCache
+                if dimensions and not isinstance(cache_source.cache, CACHE):
                     # caching of dimension layers is not supported yet
                     raise ConfigurationError(
                         "caching of dimension layer (%s) is not supported yet."
