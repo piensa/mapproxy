@@ -76,14 +76,6 @@ def tile_location_tc(tile, cache_dir, file_ext, create_dir=False,dimensionlist=N
     '/tmp/cache/02/000/000/003/000/000/004.png'
     """
 
-    #Dimensions 
-    
-    if dimensions is not None:
-        items = list(dimensions.keys())
-        items.sort()
-        dimensions_str = ['{key}-{value}'.format(key=i, value=dimensions[i].replace('/', '_')) for i in items]
-        cache_dir = os.path.join(cache_dir, '_'.join(dimensions_str))
-
     if tile.location is None:
         x, y, z = tile.coord
         parts = (cache_dir,
