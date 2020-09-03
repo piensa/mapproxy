@@ -1559,6 +1559,7 @@ class CacheConfiguration(ConfigurationBase):
                         lock_timeout=self.context.globals.get_value('http.client_timeout', {}),
                         lock_cache_id=cache.lock_cache_id,
                 )
+
             mgr = TileManager(tile_grid, cache, sources, image_opts.format.ext,
                 locker=locker,
                 image_opts=image_opts, identifier=identifier,
@@ -1713,8 +1714,13 @@ class LayerConfiguration(ConfigurationBase):
 
         res_range = resolution_range(self.conf)
 
+        dimensions = None
+        if 'dimensions' in self.conf.keys():
+            dimensions = self.dimensions()
+
         layer = WMSLayer(self.conf.get('name'), self.conf.get('title'),
-                         sources, fi_sources, lg_sources, res_range=res_range, md=self.conf.get('md'))
+                         sources, fi_sources, lg_sources, res_range=res_range, md=self.conf.get('md'),
+                         dimensions=dimensions)
         return layer
 
     @memoize
@@ -1723,8 +1729,20 @@ class LayerConfiguration(ConfigurationBase):
         dimensions = {}
 
         for dimension, conf in iteritems(self.conf.get('dimensions', {})):
-            values = [str(val) for val in  conf.get('values', ['default'])]
+            # Check if values is a string instead of a list
+            # and process it as a range. Only Hours are accepted as
+            # a valid time period.
+            # Example:
+            # 2020-03-25T12:00:00Z/2020-03-27T00:00:00Z/PT12H
+            from mapproxy.util.ext.wmsparse.util import parse_datetime_range
+
+            raw_values = conf.get('values')
+            if type(raw_values) == str:
+                values = parse_datetime_range(raw_values)
+            else:
+                values = [str(val) for val in  conf.get('values')]
             default = conf.get('default', values[-1])
+
             dimensions[dimension.lower()] = Dimension(dimension, values, default=default)
         return dimensions
 
@@ -1732,6 +1750,7 @@ class LayerConfiguration(ConfigurationBase):
     def tile_layers(self, grid_name_as_path=False):
         from mapproxy.service.tile import TileLayer
         from mapproxy.cache.dummy import DummyCache
+        from mapproxy.cache.file import FileCache
 
         sources = []
         fi_only_sources = []
@@ -1774,11 +1793,11 @@ class LayerConfiguration(ConfigurationBase):
                     fi_sources.append(fi_source)
 
             for grid, extent, cache_source in self.context.caches[cache_name].caches():
-                if dimensions and not isinstance(cache_source.cache, DummyCache):
-                    # caching of dimension layers is not supported yet
+                if dimensions and not isinstance(cache_source.cache, (FileCache, DummyCache)):
+                    # caching of dimension layers is only supported by FileCache
                     raise ConfigurationError(
-                        "caching of dimension layer (%s) is not supported yet."
-                        " need to `disable_storage: true` on %s cache" % (self.conf['name'], cache_name)
+                        "caching of dimension layer (%s) is not supported yet by this cache backend."
+                        " need to use a FileCache, or `disable_storage: true` on %s cache" % (self.conf['name'], cache_name)
                     )
 
                 md = {}

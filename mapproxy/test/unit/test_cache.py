@@ -113,13 +113,13 @@ class RecordFileCache(FileCache):
         self.stored_tiles = set()
         self.loaded_tiles = counting_set([])
 
-    def store_tile(self, tile):
+    def store_tile(self, tile, dimensions=None):
         assert tile.coord not in self.stored_tiles
         self.stored_tiles.add(tile.coord)
         if self.cache_dir != '/dev/null':
             FileCache.store_tile(self, tile)
 
-    def load_tile(self, tile, with_metadata=False):
+    def load_tile(self, tile, with_metadata=False, dimensions=None):
         if tile.source:
             # Do not record tiles with source as "loaded" as FileCache will
             # return tile without checking/loading from filesystem.
@@ -127,7 +127,7 @@ class RecordFileCache(FileCache):
         self.loaded_tiles.add(tile.coord)
         return FileCache.load_tile(self, tile, with_metadata)
 
-    def is_cached(self, tile):
+    def is_cached(self, tile, dimensions=None):
         return tile.coord in self.stored_tiles
 
 

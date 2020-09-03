@@ -376,6 +376,7 @@ mapproxy_yaml_spec = {
                 'region_name': str(),
                 'endpoint_url': str(),
             },
+            'dimensions': [str()],
         },
         'grid': {
             'tile_size': [int()],
@@ -581,7 +582,7 @@ mapproxy_yaml_spec = {
             'md': wms_130_layer_md,
             'dimensions': {
                 anything(): {
-                    required('values'): [one_of(string_type, float, int)],
+                    required('values'): one_of(string_type, [string_type], [float], [int]),
                     'default': one_of(string_type, float, int),
                 }
             }
