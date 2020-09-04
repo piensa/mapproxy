@@ -66,6 +66,7 @@ class TileManager(object):
             bulk_meta_tiles=False,
             rescale_tiles=0,
             cache_rescaled_tiles=False,
+            dimensions=None
         ):
         self.grid = grid
         self.cache = cache
@@ -81,6 +82,7 @@ class TileManager(object):
         self.pre_store_filter = pre_store_filter or []
         self.concurrent_tile_creators = concurrent_tile_creators
         self.tile_creator_class = tile_creator_class or TileCreator
+        self.dimensions = dimensions
 
         self.rescale_tiles = rescale_tiles
         self.cache_rescaled_tiles = cache_rescaled_tiles
@@ -200,7 +202,7 @@ class TileManager(object):
             tile = Tile(tile)
         if tile.coord is None:
             return True
-        cached = self.cache.is_cached(tile)
+        cached = self.cache.is_cached(tile, dimensions=dimensions)
         max_mtime = self.expire_timestamp(tile)
         if cached and max_mtime is not None:
             self.cache.load_tile_metadata(tile)
@@ -314,11 +316,11 @@ class TileCreator(object):
         self.dimensions = dimensions
         self.image_merger = image_merger
 
-    def is_cached(self, tile):
+    def is_cached(self, tile,dimensions=None):
         """
         Return True if the tile is cached.
         """
-        return self.tile_mgr.is_cached(tile)
+        return self.tile_mgr.is_cached(tile,dimensions=dimensions)
 
     def create_tiles(self, tiles):
         if not self.sources:
@@ -442,18 +444,18 @@ class TileCreator(object):
         log.debug(query)
         main_tile = Tile(meta_tile.main_tile_coord)
         with self.tile_mgr.lock(main_tile):
-            if not all(self.is_cached(t) for t in meta_tile.tiles if t is not None):
+            if not all(self.is_cached(t, dimensions=self.dimensions) for t in meta_tile.tiles if t is not None):
                 meta_tile_image = self._query_sources(query)
                 if not meta_tile_image: return []
                 splitted_tiles = split_meta_tiles(meta_tile_image, meta_tile.tile_patterns,
                                                   tile_size, self.tile_mgr.image_opts)
                 splitted_tiles = [self.tile_mgr.apply_tile_filter(t) for t in splitted_tiles]
                 if meta_tile_image.cacheable:
-                    self.cache.store_tiles(splitted_tiles)
+                    self.cache.store_tiles(splitted_tiles,dimensions=self.dimensions)
                 return splitted_tiles
             # else
         tiles = [Tile(coord) for coord in meta_tile.tiles]
-        self.cache.load_tiles(tiles)
+        self.cache.load_tiles(tiles, dimensions=self.dimensions)
         return tiles
 
     def _create_bulk_meta_tile(self, meta_tile):
@@ -505,7 +507,7 @@ class TileCreator(object):
 
             # else
         tiles = [Tile(coord) for coord in meta_tile.tiles]
-        self.cache.load_tiles(tiles)
+        self.cache.load_tiles(tiles, dimensions=self.dimensions)
         return tiles
 
 

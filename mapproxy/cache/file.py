@@ -54,7 +54,7 @@ class FileCache(TileCacheBase):
             items.sort()
             dimensions_str = ['{key}-{value}'.format(key=i, value=dimensions[i].replace('/', '_')) for i in items]
             print("dimensions_str: ", dimensions_str)
-            cache_dir = os.path.join(create_dir, '_'.join(dimensions_str))
+            cache_dir = os.path.join(self.cache_dir, '_'.join(dimensions_str))
             log.debug(dimensions_str)
         return self._tile_location(tile, self.cache_dir, self.file_ext, create_dir=create_dir, dimensionlist=self.dimensionlist, dimensions=dimensions)
 
