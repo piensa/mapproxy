@@ -202,7 +202,6 @@ class TileManager(object):
             tile = Tile(tile)
         if tile.coord is None:
             return True
-        print(self.cache.__dict__)
         cached = self.cache.is_cached(tile, dimensions=dimensions)
         max_mtime = self.expire_timestamp(tile)
         if cached and max_mtime is not None:
