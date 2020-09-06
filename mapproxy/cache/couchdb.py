@@ -198,12 +198,12 @@ class CouchDBCache(TileCacheBase):
         tiles = [t for t in tiles if not t.stored]
         return self._store_bulk(tiles)
 
-    def load_tile_metadata(self, tile):
+    def load_tile_metadata(self, tile,dimensions=None):
         if tile.timestamp:
             return
 
         # is_cached loads metadata
-        self.is_cached(tile)
+        self.is_cached(tile,dimensions=None)
 
     def load_tile(self, tile, with_metadata=False,dimensions=None):
         # bulk loading with load_tiles is not implemented, because

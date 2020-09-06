@@ -91,10 +91,10 @@ class S3Cache(TileCacheBase):
         except Exception as e:
             raise S3ConnectionError('Error during connection %s' % e)
 
-    def load_tile_metadata(self, tile):
+    def load_tile_metadata(self, tile,dimensions=None):
         if tile.timestamp:
             return
-        self.is_cached(tile)
+        self.is_cached(tile,dimensions=dimensions)
 
     def _set_metadata(self, response, tile):
         if 'LastModified' in response:
@@ -102,7 +102,7 @@ class S3Cache(TileCacheBase):
         if 'ContentLength' in response:
             tile.size = response['ContentLength']
 
-    def is_cached(self, tile):
+    def is_cached(self, tile,dimensions=None):
         if tile.is_missing():
             key = self.tile_key(tile)
             try:

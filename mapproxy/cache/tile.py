@@ -202,6 +202,7 @@ class TileManager(object):
             tile = Tile(tile)
         if tile.coord is None:
             return True
+        print(self.cache.__dict__)
         cached = self.cache.is_cached(tile, dimensions=dimensions)
         max_mtime = self.expire_timestamp(tile)
         if cached and max_mtime is not None:
@@ -217,9 +218,9 @@ class TileManager(object):
         """
         if isinstance(tile, tuple):
             tile = Tile(tile)
-        if self.cache.is_cached(tile):
+        if self.cache.is_cached(tile,dimensions=dimensions):
             # tile exists
-            if not self.is_cached(tile):
+            if not self.is_cached(tile,dimensions=dimensions):
                 # expired
                 return True
             return False
@@ -360,12 +361,12 @@ class TileCreator(object):
             result.extend(new_tiles)
         return result
 
-    def _create_single_tile(self, tile):
+    def _create_single_tile(self, tile,dimensions=None):
         tile_bbox = self.grid.tile_bbox(tile.coord)
         query = MapQuery(tile_bbox, self.grid.tile_size, self.grid.srs,
                          self.tile_mgr.request_format, dimensions=self.dimensions)
         with self.tile_mgr.lock(tile):
-            if not self.is_cached(tile):
+            if not self.is_cached(tile,dimensions=dimensions):
                 source = self._query_sources(query)
                 if not source: return []
                 if self.tile_mgr.image_opts != source.image_opts:
@@ -466,7 +467,7 @@ class TileCreator(object):
         tile_size = self.grid.tile_size
         main_tile = Tile(meta_tile.main_tile_coord)
         with self.tile_mgr.lock(main_tile):
-            if not all(self.is_cached(t) for t in meta_tile.tiles if t is not None):
+            if not all(self.is_cached(t,dimensions=self.dimensions) for t in meta_tile.tiles if t is not None):
                 async_pool = async_.Pool(self.tile_mgr.concurrent_tile_creators)
                 def query_tile(coord):
                     try:
