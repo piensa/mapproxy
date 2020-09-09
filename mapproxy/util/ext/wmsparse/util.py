@@ -128,6 +128,9 @@ def parse_datetime_range(datetime_range_str):
     datetime_range_str = datetime_range_str.strip() #delete blank spaces
     splitting = datetime_range_str.split('/')
 
+    if len(splitting) == 1:
+        raise ISO8601Error("Invalid ISO 8601 string to parse: %r" % datetime_range_str)
+
     if len(splitting) == 2 and splitting[1].startswith("P"): 
         # sample: "2007-03-01T13:00:00Z/P1Y2M10DT2H30M"
         init_str, interval =  splitting
